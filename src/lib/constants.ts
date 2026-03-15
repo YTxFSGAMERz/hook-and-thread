@@ -17,4 +17,4 @@ export const AUDIENCES = [
 
 export type Framework = (typeof FRAMEWORKS)[number]["id"];
 export type Audience = (typeof AUDIENCES)[number]["id"];
-export type EditorMode = "generate" | "hooks" | "rewrite" | "carousel";
+export type EditorMode = "generate" | "hooks" | "rewrite" | "carousel" | "viral";

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Zap, PenTool, RefreshCw, Layers } from "lucide-react";
+import { Zap, PenTool, RefreshCw, Layers, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FRAMEWORKS, AUDIENCES, type Framework, type Audience, type EditorMode } from "@/lib/constants";
@@ -10,6 +10,7 @@ const MODES: { id: EditorMode; label: string; icon: typeof Zap }[] = [
   { id: "hooks", label: "Hooks", icon: PenTool },
   { id: "rewrite", label: "Rewrite", icon: RefreshCw },
   { id: "carousel", label: "Carousel", icon: Layers },
+  { id: "viral", label: "Viral Angles", icon: Target },
 ];
 
 interface Props {
@@ -35,11 +36,12 @@ export default function ForgePane({ onGenerate, loading }: Props) {
     onGenerate({ mode, idea: idea.trim(), framework, audience, slideCount });
   };
 
-  const placeholder = {
+  const placeholder: Record<EditorMode, string> = {
     generate: "Enter your raw idea or topic...\n\ne.g. 'I learned SQL optimization today'",
     hooks: "Enter a topic to generate hooks for...\n\ne.g. 'AI replacing developer tasks'",
     rewrite: "Paste your existing post here...\n\nThe AI will transform it into engaging content.",
     carousel: "Enter a topic for your carousel...\n\ne.g. '5 SQL mistakes developers make'",
+    viral: "Enter a topic to generate viral angles...\n\ne.g. 'AI agents'",
   };
 
   return (
@@ -141,7 +143,7 @@ export default function ForgePane({ onGenerate, loading }: Props) {
           className="w-full mechanical-press"
           size="lg"
         >
-          {loading ? "Generating..." : mode === "hooks" ? "Generate Hooks" : mode === "carousel" ? "Build Carousel" : mode === "rewrite" ? "Rewrite Post" : "Generate Post"}
+          {loading ? "Generating..." : mode === "viral" ? "Generate Angles" : mode === "hooks" ? "Generate Hooks" : mode === "carousel" ? "Build Carousel" : mode === "rewrite" ? "Rewrite Post" : "Generate Post"}
         </Button>
       </div>
     </div>

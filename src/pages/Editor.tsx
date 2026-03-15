@@ -13,6 +13,46 @@ import StagePane from "@/components/editor/StagePane";
 
 function buildSystemPrompt(mode: EditorMode, framework: Framework, audience: Audience, slideCount?: number) {
   const fw = FRAMEWORKS.find((f) => f.id === framework);
+
+  if (mode === "viral") {
+    return `You are a top LinkedIn ghostwriter and viral content strategist.
+
+Given a topic, generate 5 unique "viral angles" — each a different creative lens to write a high-engagement LinkedIn post from.
+
+The 5 angles MUST be:
+1. Controversial Opinion — a bold, slightly polarizing take
+2. Personal Failure Story — a relatable "I messed up" narrative
+3. Industry Insight — a data-driven or insider perspective
+4. Step-by-Step Framework — a structured how-to breakdown
+5. Myth-Busting Post — debunking a common misconception
+
+For each angle, provide:
+- "type": the angle type (e.g. "controversial", "failure", "insight", "framework", "mythbust")
+- "title": a catchy 5-8 word title for this angle
+- "preview": a 1-2 sentence preview of what the post would say
+- "hook": one punchy hook line (under 12 words) for this angle
+
+Context:
+- Audience: "${audience}"
+- Tone: Professional but slightly opinionated
+
+OUTPUT FORMAT (strict JSON, no markdown outside):
+{
+  "angles": [
+    { "type": "controversial", "title": "...", "preview": "...", "hook": "..." },
+    { "type": "failure", "title": "...", "preview": "...", "hook": "..." },
+    { "type": "insight", "title": "...", "preview": "...", "hook": "..." },
+    { "type": "framework", "title": "...", "preview": "...", "hook": "..." },
+    { "type": "mythbust", "title": "...", "preview": "...", "hook": "..." }
+  ]
+}
+
+IMPORTANT:
+- Output ONLY a single valid JSON object.
+- Do NOT wrap it in markdown code fences.
+- Do NOT include any text before or after the JSON.`;
+  }
+
   return `You are a top LinkedIn ghostwriter.
 
 Write a high-engagement LinkedIn post using this structure:
@@ -68,6 +108,7 @@ export default function Editor() {
   const [originalContent, setOriginalContent] = useState("");
   const [hooks, setHooks] = useState<string[]>([]);
   const [carouselSlides, setCarouselSlides] = useState<{ title: string; content: string }[]>([]);
+  const [viralAngles, setViralAngles] = useState<{ type: string; title: string; preview: string; hook: string }[]>([]);
   const [currentMode, setCurrentMode] = useState<EditorMode>("generate");
   const [loading, setLoading] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string>();
@@ -80,6 +121,7 @@ export default function Editor() {
       setContent("");
       setHooks([]);
       setCarouselSlides([]);
+      setViralAngles([]);
       setCurrentMode(params.mode);
       if (params.mode === "rewrite") setOriginalContent(params.idea);
       else setOriginalContent("");
@@ -87,7 +129,9 @@ export default function Editor() {
       const systemPrompt = buildSystemPrompt(params.mode, params.framework, params.audience, params.slideCount);
       const userMessage = params.mode === 'rewrite'
         ? `Rewrite this exact post:\n\n${params.idea}`
-        : `Idea: ${params.idea}`;
+        : params.mode === 'viral'
+          ? `Topic: ${params.idea}`
+          : `Idea: ${params.idea}`;
 
       try {
         let full = "";
@@ -105,9 +149,13 @@ export default function Editor() {
               const match = full.match(/\{[\s\S]*\}/);
               if (match) {
                 const parsed = JSON.parse(match[0]);
-                setContent(parsed.post_markdown || "");
-                if (Array.isArray(parsed.hooks)) setHooks(parsed.hooks);
-                if (Array.isArray(parsed.carousel)) setCarouselSlides(parsed.carousel);
+                if (params.mode === "viral" && Array.isArray(parsed.angles)) {
+                  setViralAngles(parsed.angles);
+                } else {
+                  setContent(parsed.post_markdown || "");
+                  if (Array.isArray(parsed.hooks)) setHooks(parsed.hooks);
+                  if (Array.isArray(parsed.carousel)) setCarouselSlides(parsed.carousel);
+                }
               } else {
                 setContent(full);
               }
@@ -159,6 +207,15 @@ export default function Editor() {
     toast({ title: "Hook selected — now generate a full post from it" });
   };
 
+  const handleSelectAngle = useCallback(
+    (angle: { type: string; title: string; preview: string; hook: string }) => {
+      const angleIdea = `Write a LinkedIn post using this viral angle:\n\nAngle: ${angle.title}\nType: ${angle.type}\nHook: ${angle.hook}\nDirection: ${angle.preview}`;
+      setViralAngles([]);
+      handleGenerate({ mode: "generate", idea: angleIdea, framework: "hot-take" as Framework, audience: "developers" as Audience });
+    },
+    [handleGenerate]
+  );
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
@@ -188,6 +245,7 @@ export default function Editor() {
           originalContent={originalContent}
           hooks={hooks}
           carouselSlides={carouselSlides}
+          viralAngles={viralAngles}
           mode={currentMode}
           loading={loading}
           onSave={handleSave}
@@ -195,6 +253,7 @@ export default function Editor() {
           onGenerateCarousel={() => setCurrentMode(currentMode !== "carousel" ? "carousel" : "generate")}
           onHooksToggle={() => setCurrentMode(currentMode !== "hooks" ? "hooks" : "generate")}
           onSelectHook={handleSelectHook}
+          onSelectAngle={handleSelectAngle}
           hoveredHook={hoveredHook}
           onHoverHook={setHoveredHook}
         />

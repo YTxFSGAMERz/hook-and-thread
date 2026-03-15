@@ -10,11 +10,19 @@ interface CarouselSlide {
   content: string;
 }
 
+interface ViralAngle {
+  type: string;
+  title: string;
+  preview: string;
+  hook: string;
+}
+
 interface Props {
   content: string;
   originalContent?: string;
   hooks?: string[];
   carouselSlides?: CarouselSlide[];
+  viralAngles?: ViralAngle[];
   mode: string;
   loading: boolean;
   onSave: () => void;
@@ -22,6 +30,7 @@ interface Props {
   onGenerateCarousel: () => void;
   onHooksToggle: () => void;
   onSelectHook?: (hook: string) => void;
+  onSelectAngle?: (angle: ViralAngle) => void;
   hoveredHook?: string | null;
   onHoverHook?: (hook: string | null) => void;
 }
@@ -31,6 +40,7 @@ export default function StagePane({
   originalContent,
   hooks,
   carouselSlides,
+  viralAngles,
   mode,
   loading,
   onSave,
@@ -38,6 +48,7 @@ export default function StagePane({
   onGenerateCarousel,
   onHooksToggle,
   onSelectHook,
+  onSelectAngle,
   hoveredHook,
   onHoverHook,
 }: Props) {
@@ -97,6 +108,45 @@ export default function StagePane({
                 {hook}
               </motion.button>
             ))}
+          </div>
+        )}
+
+        {/* Viral Angles mode */}
+        {mode === "viral" && viralAngles && viralAngles.length > 0 && (
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground font-medium">Click an angle to generate a full post from it</p>
+            {viralAngles.map((angle, i) => {
+              const icons: Record<string, string> = {
+                controversial: "🔥",
+                failure: "💥",
+                insight: "📊",
+                framework: "🛠️",
+                mythbust: "🚨",
+              };
+              return (
+                <motion.button
+                  key={i}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.08 }}
+                  onClick={() => onSelectAngle?.(angle)}
+                  className="w-full text-left p-4 border border-border rounded-lg bg-card hover:border-primary hover:bg-primary/5 transition-all group"
+                >
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-lg">{icons[angle.type] || "⚡"}</span>
+                    <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                      {angle.title}
+                    </span>
+                  </div>
+                  <p className="text-xs text-primary/80 font-medium mb-1 italic">
+                    "{angle.hook}"
+                  </p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {angle.preview}
+                  </p>
+                </motion.button>
+              );
+            })}
           </div>
         )}
 
