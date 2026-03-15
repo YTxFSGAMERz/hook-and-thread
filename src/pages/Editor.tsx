@@ -224,9 +224,9 @@ export default function Editor() {
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
-      <header className="h-11 border-b border-border flex items-center justify-between px-4 shrink-0">
+      <header className="h-11 border-b border-border/50 flex items-center justify-between px-4 shrink-0 bg-card/30 backdrop-blur-md shadow-[0_1px_8px_hsl(0_0%_0%/0.3)]">
         <span className="font-semibold text-sm tracking-tight">
-          Hook<span className="text-primary">&</span>Thread
+          Hook<span className="text-gradient">&</span>Thread
         </span>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">{user?.email}</span>

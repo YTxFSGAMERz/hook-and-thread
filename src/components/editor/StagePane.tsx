@@ -69,7 +69,7 @@ export default function StagePane({
   const displayContent = hoveredHook || content;
 
   return (
-    <div className="w-[550px] shrink-0 flex flex-col h-full bg-background">
+    <div className="w-[550px] shrink-0 flex flex-col h-full bg-background/80 backdrop-blur-sm">
       {/* Rhythm Ruler */}
       {mode !== "carousel" && displayContent && (
         <div className="px-4 pt-3 pb-1 flex items-center gap-2">
@@ -99,10 +99,10 @@ export default function StagePane({
                 onMouseLeave={() => onHoverHook?.(null)}
                 onClick={() => onSelectHook?.(hook)}
                 className={cn(
-                  "w-full text-left p-3 border rounded-lg text-sm transition-colors",
+                  "w-full text-left p-3 border rounded-lg text-sm transition-all duration-200",
                   hoveredHook === hook
-                    ? "border-primary bg-primary/5"
-                    : "border-border bg-card hover:border-muted-foreground"
+                    ? "border-primary bg-primary/5 shadow-[0_0_20px_hsl(160_100%_50%/0.15)]"
+                    : "border-border bg-card hover:border-muted-foreground hover:shadow-lg"
                 )}
               >
                 {hook}
@@ -130,7 +130,7 @@ export default function StagePane({
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.08 }}
                   onClick={() => onSelectAngle?.(angle)}
-                  className="w-full text-left p-4 border border-border rounded-lg bg-card hover:border-primary hover:bg-primary/5 transition-all group"
+                  className="glow-card w-full text-left p-4 group cursor-pointer"
                 >
                   <div className="flex items-center gap-2 mb-1.5">
                     <span className="text-lg">{icons[angle.type] || "⚡"}</span>
@@ -230,7 +230,7 @@ export default function StagePane({
 
         {/* Default post preview */}
         {(mode === "generate" || (mode === "rewrite" && !originalContent) || mode === "hooks") && displayContent && mode !== "hooks" && (
-          <div className="bg-card border border-border rounded-lg p-5">
+          <div className="elevated-card p-5">
             {/* LinkedIn-style header */}
             <div className="flex items-center gap-3 mb-4">
               <div className="h-10 w-10 rounded-full bg-muted" />
@@ -258,24 +258,26 @@ export default function StagePane({
 
         {/* Empty state */}
         {!displayContent && !hooks?.length && !carouselSlides?.length && !loading && (
-          <div className="flex-1 flex items-center justify-center h-full">
-            <p className="text-muted-foreground text-sm text-center">
-              Your generated post will appear here.
-              <br />
-              <span className="text-xs">Start by writing an idea in The Forge.</span>
-            </p>
+          <div className="flex-1 flex items-center justify-center h-full fade-in">
+            <div className="gradient-border p-8 text-center">
+              <p className="text-muted-foreground text-sm">
+                Your generated post will appear here.
+                <br />
+                <span className="text-xs">Start by writing an idea in The Forge.</span>
+              </p>
+            </div>
           </div>
         )}
 
         {loading && !displayContent && (
           <div className="flex items-center justify-center h-32">
-            <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <div className="h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin pulse-glow" />
           </div>
         )}
       </div>
 
       {/* Action bar */}
-      <div className="border-t border-border p-3 flex items-center gap-2">
+      <div className="border-t border-border p-3 flex items-center gap-2 bg-card/50 backdrop-blur-sm">
         <Button onClick={handleCopy} disabled={!displayContent} className="mechanical-press flex-1">
           <Copy className="h-3.5 w-3.5 mr-1.5" />
           Copy

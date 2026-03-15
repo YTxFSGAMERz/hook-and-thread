@@ -45,9 +45,9 @@ export default function ForgePane({ onGenerate, loading }: Props) {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full border-r border-border min-w-[300px]">
+    <div className="flex-1 flex flex-col h-full border-r border-border min-w-[300px] bg-background/80 backdrop-blur-sm">
       {/* Mode tabs */}
-      <div className="flex border-b border-border">
+      <div className="flex border-b border-border bg-card/30 backdrop-blur-sm">
         {MODES.map((m) => (
           <button
             key={m.id}
@@ -71,7 +71,7 @@ export default function ForgePane({ onGenerate, loading }: Props) {
           value={idea}
           onChange={(e) => setIdea(e.target.value)}
           placeholder={placeholder[mode]}
-          className="flex-1 min-h-[160px] font-mono text-sm bg-card resize-none"
+          className="flex-1 min-h-[160px] font-mono text-sm bg-card/50 resize-none border-border/50 focus:border-primary/50 focus:shadow-[0_0_20px_hsl(160_100%_50%/0.1)] transition-shadow duration-300"
         />
 
         {/* Framework selector */}
@@ -84,10 +84,10 @@ export default function ForgePane({ onGenerate, loading }: Props) {
                   key={f.id}
                   onClick={() => setFramework(f.id)}
                   className={cn(
-                    "text-left px-3 py-2 rounded-lg border text-xs transition-colors",
+                    "text-left px-3 py-2 rounded-lg border text-xs transition-all duration-200",
                     framework === f.id
-                      ? "border-primary bg-primary/10 text-foreground"
-                      : "border-border bg-card text-muted-foreground hover:text-foreground"
+                      ? "border-primary bg-primary/10 text-foreground shadow-[0_0_15px_hsl(160_100%_50%/0.1)]"
+                      : "border-border bg-card text-muted-foreground hover:text-foreground hover:border-muted-foreground hover:shadow-md"
                   )}
                 >
                   <span className="font-medium block">{f.label}</span>
@@ -107,10 +107,10 @@ export default function ForgePane({ onGenerate, loading }: Props) {
                 key={a.id}
                 onClick={() => setAudience(a.id)}
                 className={cn(
-                  "px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors",
+                  "px-3 py-1.5 rounded-lg border text-xs font-medium transition-all duration-200",
                   audience === a.id
-                    ? "border-primary bg-primary/10 text-foreground"
-                    : "border-border bg-card text-muted-foreground hover:text-foreground"
+                    ? "border-primary bg-primary/10 text-foreground shadow-[0_0_12px_hsl(160_100%_50%/0.1)]"
+                    : "border-border bg-card text-muted-foreground hover:text-foreground hover:border-muted-foreground"
                 )}
               >
                 {a.label}
@@ -140,7 +140,7 @@ export default function ForgePane({ onGenerate, loading }: Props) {
         <Button
           onClick={handleSubmit}
           disabled={loading || !idea.trim()}
-          className="w-full mechanical-press"
+          className="w-full mechanical-press shadow-lg hover:shadow-[0_0_25px_hsl(160_100%_50%/0.2)] transition-shadow duration-300"
           size="lg"
         >
           {loading ? "Generating..." : mode === "viral" ? "Generate Angles" : mode === "hooks" ? "Generate Hooks" : mode === "carousel" ? "Build Carousel" : mode === "rewrite" ? "Rewrite Post" : "Generate Post"}
