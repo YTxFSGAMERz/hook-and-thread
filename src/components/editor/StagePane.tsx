@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Copy, Save, RefreshCw, Layers, ChevronLeft, ChevronRight } from "lucide-react";
+import { Copy, Save, RefreshCw, Layers, ChevronLeft, ChevronRight, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,7 @@ interface Props {
   onSave: () => void;
   onRewrite: () => void;
   onGenerateCarousel: () => void;
+  onHooksToggle: () => void;
   onSelectHook?: (hook: string) => void;
   hoveredHook?: string | null;
   onHoverHook?: (hook: string | null) => void;
@@ -35,6 +36,7 @@ export default function StagePane({
   onSave,
   onRewrite,
   onGenerateCarousel,
+  onHooksToggle,
   onSelectHook,
   hoveredHook,
   onHoverHook,
@@ -237,6 +239,9 @@ export default function StagePane({
         </Button>
         <Button onClick={onGenerateCarousel} variant="secondary" disabled={!content} className="mechanical-press">
           <Layers className="h-3.5 w-3.5" />
+        </Button>
+        <Button onClick={onHooksToggle} variant="secondary" disabled={!hooks || hooks.length === 0} className="mechanical-press">
+          <List className="h-3.5 w-3.5" />
         </Button>
       </div>
     </div>

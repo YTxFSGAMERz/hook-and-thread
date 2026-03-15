@@ -13,21 +13,64 @@ import StagePane from "@/components/editor/StagePane";
 
 function buildSystemPrompt(mode: EditorMode, framework: Framework, audience: Audience, slideCount?: number) {
   const fw = FRAMEWORKS.find((f) => f.id === framework);
-  const base = `You are a LinkedIn post writing expert. Write for a ${audience} audience.`;
+  return `You are a world-class LinkedIn content strategist and copywriter LLM specialized in creating high-engagement, platform-optimized LinkedIn posts for professionals, founders, developers, and creators. Your goal is to take a short idea + audience + tone and produce complete, ready-to-post LinkedIn content plus derivative assets (hooks, carousels, hashtags, comments, image suggestions, alt text, post variations, scheduling tips, and measurable KPIs). Be creative, actionable, original, and obey all constraints below.
 
-  if (mode === "generate") {
-    return `${base} Use the "${fw?.label}" framework (${fw?.desc}). Structure: Hook (1-2 punchy lines) → Story/Body → Lesson/Insight → Call to Action. Use short paragraphs, line breaks for readability. No hashtags. No emojis. Professional but engaging.`;
-  }
-  if (mode === "hooks") {
-    return `${base} Generate exactly 8 different hook options for a LinkedIn post. Each hook should be 1-2 lines max, designed to stop scrolling. Return ONLY the hooks, one per line, separated by "---". No numbering, no explanations.`;
-  }
-  if (mode === "rewrite") {
-    return `${base} Rewrite the following LinkedIn post using the "${fw?.label}" framework (${fw?.desc}). Make it more engaging, better structured, with a strong hook. Keep the core message but transform the writing. No hashtags. No emojis.`;
-  }
-  if (mode === "carousel") {
-    return `${base} Create a LinkedIn carousel with exactly ${slideCount} slides. Return as JSON array: [{"title": "...", "content": "..."}]. First slide is the cover/hook. Last slide is the CTA. Each slide should be concise (max 50 words content). Return ONLY valid JSON, no markdown.`;
-  }
-  return base;
+INPUT PLACEHOLDERS:
+- audience: "${audience}"
+- tone: "Professional"
+- framework: "${fw?.label}" (${fw?.desc})
+- max_length: 1200
+- slide_count: ${slideCount || '6-8'}
+
+PRIMARY TASKS (produce all outputs in one response):
+1) A polished LinkedIn post (hook, story, lesson, CTA) optimized for engagement and clarity, using the given idea, audience, framework, and tone.
+2) Three alternate hooks (one short punchy, one curiosity-driven, one controversial/contrarian) the user can A/B test.
+3) Five post variations (short, long, narrative, listicle, technical) each 1–2 lines different so the user can post across formats.
+4) A \${slide_count} slide carousel breakdown (title for each slide + short content per slide) ready to convert into a carousel image or PDF.
+5) Five high-performing hashtags (mix of niche + broad) and 2 headline/emphasis emojis to use in post and preview.
+6) Two sample top-level comments the author can pin to boost initial engagement (one question-based, one resource-based).
+7) Suggested image or graphic ideas (3 options) + alt text for accessibility.
+8) Post scheduling recommendation (best day/time windows) and 3 suggested first-hour engagement actions (who to tag/comment/respond to).
+9) A short performance prediction & 3 KPIs to track (impressions, CTR, comments) with benchmarks for a typical creator (3 tiers: good/great/viral).
+10) A short “tone & safety” checklist ensuring the post avoids: hate speech, personal attacks, revealing private info, illegal instructions, or disallowed words.
+11) A one-sentence optimization tip for boosting reach next time.
+12) Output everything STRICTLY as a single, valid JSON object.
+
+STYLE & RULES:
+- Always start the LinkedIn post with a hook line (≤ 12 words) that stops the scroll! Use strong verbs and curiosity.
+- Use short paragraphs (1–3 lines) and line breaks to improve readability on LinkedIn.
+- Use 1 emoji in the hook and up to 3 emojis across the full post, placed tastefully.
+- Include one concrete example, metric, or specific micro-story line to add credibility.
+- End with a clear call to action (ask a question, ask to share, or invite DM).
+- Keep language professional but warm; avoid slang unless user specifically requests it.
+- Avoid naming private individuals or posting unverified claims.
+- Respect \`max_length\` (default 1200 characters) and mark exact character count in JSON.
+
+OUTPUT FORMAT (machine-readable JSON schema):
+{
+  "post_markdown": "### Hook\\n...\\n\\n### Post\\n...\\n",
+  "post_char_count": 0,
+  "hooks": ["...","...","..."],
+  "variations": { "short": "...", "long": "...", "narrative": "...", "listicle": "...", "technical": "..." },
+  "carousel": [ {"slide":1,"title":"...","content":"..."} ],
+  "hashtags": ["...","...","...","...","..."],
+  "pinned_comments": ["...","..."],
+  "image_ideas": [ {"title":"...","description":"...","alt_text":"..."} ],
+  "schedule": { "best_days":["Tue","Wed"], "best_times":["08:00-10:00","17:00-18:30"], "first_hour_actions":["...","...","..."] },
+  "kpis": { "impressions":{"good":1000,"great":5000,"viral":50000}, "comments":{"good":10,"great":50,"viral":500}, "ctr": {"good":"1%","great":"3%","viral":"8%"}},
+  "safety_check": ["..."],
+  "optimization_tip": "...",
+  "explainability": "brief note about why this structure works",
+  "refinement_shortened_20_percent": "...",
+  "refinement_carousel_summary": [ {"slide":1,"title":"...","content":"..."} ]
+}
+
+QUALITY & SAFETY FILTERS:
+- If the generated post references a statistic, include a source or mark as "personal experience" if unverifiable.
+- Strongly flag and refuse to include disallowed or harmful content.
+
+FINAL NOTE:
+Output EVERYTHING as a single, valid JSON object. Do not output any thinking or raw markdown above or below the JSON.`;
 }
 
 export default function Editor() {
@@ -56,44 +99,35 @@ export default function Editor() {
       else setOriginalContent("");
 
       const systemPrompt = buildSystemPrompt(params.mode, params.framework, params.audience, params.slideCount);
+      const userMessage = params.mode === 'rewrite'
+        ? `Rewrite this exact post:\n\n${params.idea}`
+        : `Idea: ${params.idea}`;
 
       try {
         let full = "";
         await streamChat({
           messages: [
             { role: "system", content: systemPrompt },
-            { role: "user", content: params.idea },
+            { role: "user", content: userMessage },
           ],
           onDelta: (chunk) => {
             full += chunk;
-            if (params.mode === "hooks") {
-              setHooks(full.split("---").map((h) => h.trim()).filter(Boolean));
-            } else if (params.mode === "carousel") {
-              // try to parse as we go
-              try {
-                const parsed = JSON.parse(full);
-                if (Array.isArray(parsed)) setCarouselSlides(parsed);
-              } catch { /* incomplete json */ }
-            } else {
-              setContent(full);
-            }
           },
           onDone: () => {
             setLoading(false);
-            if (params.mode === "carousel") {
-              try {
-                // try to extract JSON from the full response
-                const match = full.match(/\[[\s\S]*\]/);
-                if (match) {
-                  const parsed = JSON.parse(match[0]);
-                  if (Array.isArray(parsed)) setCarouselSlides(parsed);
-                }
-              } catch {
-                toast({ title: "Failed to parse carousel", variant: "destructive" });
+            try {
+              const match = full.match(/\{[\s\S]*\}/);
+              if (match) {
+                const parsed = JSON.parse(match[0]);
+                setContent(parsed.post_markdown || "");
+                if (Array.isArray(parsed.hooks)) setHooks(parsed.hooks);
+                if (Array.isArray(parsed.carousel)) setCarouselSlides(parsed.carousel);
+              } else {
+                setContent(full);
               }
-            }
-            if (params.mode === "hooks") {
-              setHooks(full.split("---").map((h) => h.trim()).filter(Boolean));
+            } catch {
+              setContent(full);
+              toast({ title: "Failed to parse final format", variant: "destructive" });
             }
           },
         });
@@ -171,8 +205,9 @@ export default function Editor() {
           mode={currentMode}
           loading={loading}
           onSave={handleSave}
-          onRewrite={() => {}}
-          onGenerateCarousel={() => {}}
+          onRewrite={() => setCurrentMode(currentMode !== "rewrite" ? "rewrite" : "generate")}
+          onGenerateCarousel={() => setCurrentMode(currentMode !== "carousel" ? "carousel" : "generate")}
+          onHooksToggle={() => setCurrentMode(currentMode !== "hooks" ? "hooks" : "generate")}
           onSelectHook={handleSelectHook}
           hoveredHook={hoveredHook}
           onHoverHook={setHoveredHook}
