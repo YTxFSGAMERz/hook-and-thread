@@ -23,9 +23,14 @@ serve(async (req) => {
         "X-Title": "Hook & Thread",
       },
       body: JSON.stringify({
+<<<<<<< HEAD
         model: "nousresearch/hermes-3-llama-3.1-405b:free",
+=======
+        model: "google/gemini-2.5-pro",
+>>>>>>> 9763f473c99a4c4aa5aaca44ce279bd3d2df8a89
         messages,
         stream: true,
+        temperature: 1.0,
       }),
     });
 
